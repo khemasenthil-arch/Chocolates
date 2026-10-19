@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chocolate Clicker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='2' width='16' height='20' rx='3' fill='%235a2e14' stroke='%23f2c14e' stroke-width='1.5'/%3E%3Cpath d='M4 8.7h16M4 15.3h16M9.3 2v20M14.7 2v20' stroke='%23f2c14e'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#24130c;--card:#342015;--line:#5a3a26;--cream:#f6e8d0;--dim:#c4a583;--gold:#f2c14e;--car:#d98e3c;--ok:#9be39f;--bad:#ff8f80}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 30% 0,#3b2013,var(--bg) 60%);color:var(--cream);font:16px/1.4 Georgia,serif;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#1a0d07;border-bottom:2px solid var(--car);flex-wrap:wrap;position:sticky;top:0;z-index:5}
+h1{margin:0;font-size:22px;color:var(--gold)}
+nav{display:flex;gap:6px;overflow-x:auto;flex:1}
+nav button,.admbtn{background:none;border:1px solid var(--line);border-radius:20px;padding:6px 14px;white-space:nowrap;transition:.2s}
+nav button.on{background:var(--car);color:#2a1408;border-color:var(--car)}
+nav button:hover,.admbtn:hover{border-color:var(--gold)}
+main{display:grid;grid-template-columns:1fr minmax(320px,440px);gap:16px;padding:16px;max-width:1200px;margin:auto}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+#stage{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:12px}
+#bal{font-size:clamp(30px,6vw,48px);font-weight:bold;color:var(--gold)}
+#cps{color:var(--dim)}
+#bar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:min(70vw,280px);aspect-ratio:3/4;padding:10px;background:#5a2e14;border:0;border-radius:18px;box-shadow:0 10px 0 #3a1c0b,0 20px 30px rgba(0,0,0,.5);transition:transform .08s;-webkit-tap-highlight-color:transparent}
+#bar:active{transform:scale(.94) rotate(-1deg)}
+#bar i{border-radius:8px;background:linear-gradient(145deg,#8a4a24,#4a230d);box-shadow:inset 3px 3px 5px rgba(255,200,140,.25),inset -3px -3px 6px rgba(0,0,0,.45)}
+.mini{display:flex;gap:18px;color:var(--dim);font-size:14px;flex-wrap:wrap;justify-content:center}
+#panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.35);max-height:calc(100vh - 110px);overflow-y:auto}
+@media(max-width:800px){#panel{max-height:none}}
+h2{margin:4px 4px 10px;font-size:18px;color:var(--gold)}
+.row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#2a170e;border:1px solid var(--line);border-radius:12px;padding:9px 11px;margin-bottom:7px;transition:border-color .2s}
+button.row:not(:disabled):hover{border-color:var(--gold)}
+.row:disabled{opacity:.5;cursor:not-allowed}
+.row .ic{font-size:26px;width:34px;text-align:center}
+.row .t{flex:1}.row small{display:block;color:var(--dim)}
+.row b{color:var(--gold)}
+.lock{opacity:.45;filter:grayscale(1)}
+.done{border-color:var(--ok)}
+.seg{display:flex;gap:6px;margin-bottom:10px}
+.seg button{flex:1;padding:6px;border-radius:8px;border:1px solid var(--line);background:none}
+.seg button.on{background:var(--car);color:#2a1408}
+.act{background:var(--car);color:#2a1408;border:0;border-radius:8px;padding:8px 12px;font-weight:bold}
+.act.warn{background:var(--bad)}
+.act:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{background:#1a0d07;color:var(--cream);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;width:100%}
+textarea{height:70px;font:12px monospace}
+.grid{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px}
+.fl{position:fixed;pointer-events:none;font-weight:bold;color:var(--gold);text-shadow:0 2px 3px #000;animation:up .9s ease-out forwards;z-index:20}
+.pt{position:fixed;pointer-events:none;width:8px;height:8px;border-radius:2px;background:var(--car);animation:pt .7s ease-out forwards;z-index:20}
+@keyframes up{to{transform:translateY(-80px);opacity:0}}
+@keyframes pt{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
+.noanim .fl,.noanim .pt{display:none}.noanim *{transition:none!important}
+#gold{position:fixed;width:64px;height:64px;border-radius:50%;border:3px solid #fff3b0;background:radial-gradient(circle,#ffe27a,#d99a1c);font-size:30px;z-index:15;box-shadow:0 0 24px var(--gold)}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a0d07;border:1px solid var(--gold);border-radius:10px;padding:8px 16px;z-index:40;display:none;max-width:90vw}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:30;padding:12px}
+#box{background:var(--card);border:2px solid var(--car);border-radius:16px;padding:16px;width:min(520px,100%);max-height:92vh;overflow-y:auto}
+.msg{min-height:22px;margin:6px 0}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.demo{font-size:13px;color:var(--bad);margin:0 0 8px}
+.svg{vertical-align:middle;flex:none}
+.row .ic{color:var(--car);display:flex;justify-content:center}
+nav button .svg{margin-right:6px;vertical-align:-3px}
+#gold{color:#6b4300;display:flex;align-items:center;justify-content:center}
+.logo{display:flex;align-items:center;gap:8px}
+.strip{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;color:var(--car);font-size:14px;min-height:22px}
+.strip span{display:inline-flex;align-items:center;gap:4px;color:var(--cream)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:repeating-linear-gradient(0deg,transparent 0 38px,rgba(242,193,78,.04) 38px 40px),repeating-linear-gradient(90deg,transparent 0 38px,rgba(242,193,78,.04) 38px 40px)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="3" fill="#5a2e14" stroke="#f2c14e" stroke-width="1.5"/><path d="M4 8.7h16M4 15.3h16M9.3 2v20M14.7 2v20" stroke="#f2c14e"/></svg><h1>Chocolate Clicker</h1></div>
+  <nav id="nav"></nav>
+  <button class="admbtn" id="admBtn">Admin</button>
+</header>
+<main>
+  <section id="stage">
+    <div id="bal">0 chocolate</div>
+    <div id="cps">0 per second</div>
+    <button id="bar" aria-label="Break off a chocolate piece"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button>
+    <div class="strip" id="strip" aria-label="Buildings you own"></div>
+    <div class="mini"><span id="mTot"></span><span id="mClk"></span><span id="mMul"></span></div>
+  </section>
+  <aside id="panel" aria-live="polite"></aside>
+</main>
+<div id="toast" role="status"></div>
+<div id="modal"><div id="box"></div></div>
+
+<script>
+// Local demo only: this is a SHA-256 hash of the admin password, checked in the browser.
+// Anyone can read this file, so it is NOT secure. A real deployment needs a server (see notes).
+const ADMIN_HASH = "0adb64d476e869557a235b5658af31536edb5460538dcdbc0998f75fa2604ffc";
+const KEY = "chococlicker.v1", OFFLINE_CAP = 8 * 3600;
+const $ = s => document.querySelector(s);
+const P = {
+ person:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+ heart:'<path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"/>',
+ sprout:'<path d="M12 21v-9"/><path d="M12 12c0-4 3-6 7-6 0 4-3 6-7 6z"/><path d="M12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/>',
+ pick:'<path d="M5 10a9 9 0 0 1 9-6 9 9 0 0 1 6 9"/><path d="M12 12 4 20"/>',
+ factory:'<path d="M3 21h18V9l-6 4V9l-6 4V5H3z"/>',
+ flask:'<path d="M9 3h6M10 3v6L4 20h16L14 9V3"/><path d="M7 15h10"/>',
+ bank:'<path d="M3 10 12 4l9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/>',
+ portal:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+ cube:'<path d="M12 3 20 7.5v9L12 21l-8-4.5v-9z"/><path d="M12 12 20 7.5M12 12 4 7.5M12 12v9"/>',
+ crown:'<path d="M3 18 5 7l5 5 2-7 2 7 5-5 2 11z"/><path d="M3 21h18"/>',
+ bag:'<path d="M5 8h14l-1 13H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+ up:'<path d="M12 20V6M6 12l6-6 6 6"/>',
+ trophy:'<path d="M8 4h8v6a4 4 0 0 1-8 0zM8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4M12 14v4M8 21h8"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+ lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+ star:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'};
+const ic = (n,z=24) => `<svg class="svg" width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const BI = ["person","heart","sprout","pick","factory","flask","bank","portal","cube","crown"], NI = {shop:"bag",ups:"up",ach:"trophy",stats:"chart",set:"gear"};
+const SUF = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc"];
+const fmt = n => { if (!isFinite(n)) return "∞"; if (n < 1000) return n < 10 && n % 1 ? n.toFixed(1) : Math.floor(n).toLocaleString();
+  const i = Math.min(Math.floor(Math.log10(n)/3), SUF.length-1); return (n/Math.pow(10,3*i)).toFixed(2)+SUF[i]; };
+
+const B = [
+ {n:"Chocolate Assistant",b:15,p:.1,i:"🧑‍🍳"},{n:"Chocolate Grandma",b:100,p:1,i:"👵"},{n:"Cocoa Farm",b:1100,p:8,i:"🌱"},
+ {n:"Chocolate Mine",b:12000,p:47,i:"⛏️"},{n:"Chocolate Factory",b:130000,p:260,i:"🏭"},{n:"Chocolate Laboratory",b:1.4e6,p:1400,i:"🧪"},
+ {n:"Chocolate Bank",b:2e7,p:7800,i:"🏦"},{n:"Chocolate Portal",b:3.3e8,p:44000,i:"🌀"},{n:"Chocolate Dimension",b:5.1e9,p:260000,i:"🌌"},
+ {n:"Chocolate Empire",b:7.5e10,p:1.6e6,i:"👑"}];
+const U = [
+ {n:"Cocoa gloves",d:"Clicks x2",c:100,k:"clicks",v:10,click:2},
+ {n:"Golden spatula",d:"Clicks x2",c:1000,k:"clicks",v:100,click:2},
+ {n:"Titanium mold",d:"Clicks x5",c:50000,k:"clicks",v:500,click:5},
+ {n:"Sugar rush",d:"All production x1.25",c:5000,k:"tot",v:2000,m:1.25},
+ {n:"Ganache blessing",d:"All production x1.5",c:100000,k:"tot",v:50000,m:1.5},
+ {n:"Truffle tech",d:"All production x2",c:5e6,k:"tot",v:2e6,m:2},
+ {n:"Cacao singularity",d:"All production x3",c:5e8,k:"tot",v:2e8,m:3}];
+const A = [];
+[[1e3,"Sweet start"],[1e5,"Chocolatier"],[1e7,"Cocoa baron"],[1e9,"Candy tycoon"],[1e11,"Chocolate god"]].forEach(([v,n])=>A.push({n,d:"Bake "+fmt(v)+" chocolate in total",t:()=>S.tot>=v}));
+[[1,"First snap"],[100,"Busy fingers"],[1000,"Click machine"],[10000,"Carpal tunnel"]].forEach(([v,n])=>A.push({n,d:"Click "+fmt(v)+" times",t:()=>S.clicks>=v}));
+[[10,"Small shop"],[50,"Growing chain"],[100,"Big business"],[250,"Chocolate empire"]].forEach(([v,n])=>A.push({n,d:"Own "+v+" buildings",t:()=>owned()>=v}));
+
+const def = () => ({c:0,run:0,tot:0,clicks:0,own:{},ups:[],ach:[],chips:0,gm:1,cpsOv:null,golden:true,sound:true,anim:true,unlockAll:false,last:Date.now()});
+let S = def(), tab = "shop", qty = 1, sig = "", frenzy = 0, nextGold = Date.now()+60000, adminUntil = 0, fails = 0, lockUntil = 0;
+
+const owned = () => B.reduce((t,_,i)=>t+(S.own[i]||0),0);
+const upM = f => U.reduce((m,u,j)=>S.ups.includes(j)&&u[f]?m*u[f]:m,1);
+const gmult = () => upM("m") * (1+.02*S.ach.length) * (1+.1*S.chips) * S.gm;
+const baseCps = () => S.cpsOv != null ? S.cpsOv : B.reduce((t,b,i)=>t+(S.own[i]||0)*b.p,0);
+const fr = () => Date.now() < frenzy ? 7 : 1;
+const cps = () => baseCps() * gmult() * fr();
+const clickPow = () => upM("click") * gmult() * fr();
+const bcost = (i,n) => Math.ceil(B[i].b * Math.pow(1.15, S.own[i]||0) * ((Math.pow(1.15,n)-1)/.15));
+const maxN = i => { let n = Math.max(0, Math.floor(Math.log(1 + S.c*.15/(B[i].b*Math.pow(1.15,S.own[i]||0)))/Math.log(1.15)));
+  while (n > 0 && bcost(i,n) > S.c) n--; return n; };
+const pts = () => Math.floor(Math.sqrt(S.run/1e8));
+const add = n => { S.c += n; S.run += n; S.tot += n; };
+
+function toast(t, bad){ const e = $("#toast"); e.textContent = t; e.style.borderColor = bad ? "var(--bad)" : "var(--gold)"; e.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(()=>e.style.display="none", 2600); }
+let ac; function beep(f=300,d=.06){ if(!S.sound) return; try{ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain();
+  o.frequency.value = f; g.gain.value = .04; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime+d); }catch(e){} }
+
+// ---------- save / load ----------
+function save(){ S.last = Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+const isN = (x,max=1e300) => typeof x === "number" && isFinite(x) && x >= 0 && x <= max;
+function validate(d){
+  if (!d || typeof d !== "object" || Array.isArray(d)) return null;
+  const o = def();
+  for (const k of ["c","run","tot","clicks","chips"]) { if (d[k] === undefined) continue; if (!isN(d[k])) return null; o[k] = d[k]; }
+  if (d.gm !== undefined){ if (!isN(d.gm,1e6) || d.gm <= 0) return null; o.gm = d.gm; }
+  if (d.cpsOv !== undefined && d.cpsOv !== null){ if (!isN(d.cpsOv)) return null; o.cpsOv = d.cpsOv; }
+  if (d.own !== undefined){ if (typeof d.own !== "object" || !d.own) return null;
+    for (const k in d.own){ if (!/^[0-9]$/.test(k) || !Number.isInteger(d.own[k]) || d.own[k] < 0 || d.own[k] > 1e6) return null; o.own[k] = d.own[k]; } }
+  for (const [k,len] of [["ups",U.length],["ach",A.length]]) if (d[k] !== undefined){
+    if (!Array.isArray(d[k]) || d[k].some(x=>!Number.isInteger(x)||x<0||x>=len)) return null; o[k] = [...new Set(d[k])]; }
+  for (const k of ["golden","sound","anim","unlockAll"]) if (d[k] !== undefined){ if (typeof d[k] !== "boolean") return null; o[k] = d[k]; }
+  o.last = isN(d.last) ? d.last : Date.now();
+  return o;
+}
+function load(){
+  try{ const v = validate(JSON.parse(localStorage.getItem(KEY))); if (v) S = v; }catch(e){}
+  const dt = Math.min((Date.now()-S.last)/1000, OFFLINE_CAP);
+  if (dt > 60){ const g = baseCps()*gmult()*dt*.5; if (g > 0){ add(g); setTimeout(()=>toast("Welcome back! Your workers made "+fmt(g)+" while you were away."), 400); } }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches && !localStorage.getItem(KEY)) S.anim = false;
+  applyAnim();
+}
+const applyAnim = () => document.body.classList.toggle("noanim", !S.anim);
+
+// ---------- actions ----------
+function buy(i){ const n = qty === "max" ? maxN(i) : qty, c = bcost(i,n);
+  if (n < 1 || S.c < c) return toast("Not enough chocolate.", true);
+  S.c -= c; S.own[i] = (S.own[i]||0) + n; beep(500); sig = ""; }
+function buyUp(j){ const u = U[j]; if (S.ups.includes(j) || S.c < u.c) return; S.c -= u.c; S.ups.push(j); beep(600); sig = ""; }
+function rebirth(){ const p = pts(); if (p < 1) return toast("Bake more chocolate first.", true);
+  if (!confirm("Rebirth now? Buildings, upgrades and chocolate reset. You gain "+p+" Cocoa Crown(s): +10% production each, forever.")) return;
+  S.chips += p; S.c = 0; S.run = 0; S.own = {}; S.ups = []; frenzy = 0; sig = ""; save(); toast("Reborn! +"+p+" Cocoa Crowns"); }
+
+$("#bar").onclick = e => { const p = clickPow(); add(p); S.clicks++; beep(220+Math.random()*80,.05);
+  if (!S.anim) return; const x = e.clientX || innerWidth/2, y = e.clientY || innerHeight/2;
+  const f = document.createElement("div"); f.className = "fl"; f.textContent = "+"+fmt(p); f.style.left = x-14+"px"; f.style.top = y-24+"px"; document.body.appendChild(f); setTimeout(()=>f.remove(),900);
+  for (let k=0;k<6;k++){ const q = document.createElement("div"); q.className = "pt"; q.style.left = x+"px"; q.style.top = y+"px";
+    q.style.setProperty("--dx",(Math.random()*120-60)+"px"); q.style.setProperty("--dy",(Math.random()*-90-10)+"px"); document.body.appendChild(q); setTimeout(()=>q.remove(),700); } };
+
+function spawnGold(){ if ($("#gold")) return; const g = document.createElement("button"); g.id = "gold"; g.innerHTML = ic("star",34); g.setAttribute("aria-label","Golden chocolate, click for a bonus");
+  g.style.left = 10+Math.random()*(innerWidth-90)+"px"; g.style.top = 80+Math.random()*(innerHeight-170)+"px";
+  g.onclick = () => { if (Math.random() < .5){ const v = Math.max(100, cps()/fr()*900); add(v); toast("Golden chocolate! +"+fmt(v)); }
+    else { frenzy = Date.now()+30000; toast("Frenzy! Production x7 for 30 seconds."); } beep(900,.15); g.remove(); };
+  document.body.appendChild(g); setTimeout(()=>g.remove(), 8000); }
+
+// ---------- panel ----------
+const TABS = [["shop","Shop"],["ups","Upgrades"],["ach","Achievements"],["stats","Statistics"],["set","Settings"]];
+$("#nav").innerHTML = TABS.map(([k,n])=>`<button data-t="${k}">${ic(NI[k],16)}${n}</button>`).join("");
+$("#nav").onclick = e => { const t = e.target.dataset.t; if (t){ tab = t; sig = ""; } };
+
+const bLocked = i => !S.unlockAll && !(S.own[i]||0) && S.tot < B[i].b*.6;
+const uLocked = j => !S.unlockAll && !S.ups.includes(j) && S[U[j].k] < U[j].v;
+function signature(){
+  if (tab === "shop") return tab+qty+B.map((_,i)=>(S.own[i]||0)+(S.c>=bcost(i,qty==="max"?1:qty)?"y":"n")+(bLocked(i)?"L":"")).join();
+  if (tab === "ups") return tab+U.map((u,j)=>(S.ups.includes(j)?"d":S.c>=u.c?"y":"n")+(uLocked(j)?"L":"")).join()+pts();
+  if (tab === "ach") return tab+S.ach.join();
+  return null;
+}
+function render(){
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.t === tab));
+  const s = signature(); if (s !== null && s === sig) return; sig = s;
+  const p = $("#panel"); let h = "";
+  if (tab === "shop"){
+    h += `<h2>Shop</h2><div class="seg">${[1,10,100,"max"].map(q=>`<button data-q="${q}" class="${q===qty?"on":""}">${q==="max"?"MAX":"x"+q}</button>`).join("")}</div>`;
+    B.forEach((b,i)=>{ if (bLocked(i)) return h += `<div class="row lock"><span class="ic">${ic("lock",26)}</span><span class="t">Locked<small>Bake ${fmt(b.b*.6)} chocolate to reveal</small></span></div>`;
+      const n = qty === "max" ? Math.max(1,maxN(i)) : qty, c = bcost(i,n);
+      h += `<button class="row" data-b="${i}" ${S.c<c?"disabled":""}><span class="ic">${ic(BI[i],26)}</span><span class="t">${b.n}<small>+${fmt(b.p*gmult())} per second each. Cost for ${n}: ${fmt(c)}</small></span><b>${S.own[i]||0}</b></button>`; });
+  } else if (tab === "ups"){
+    h += `<h2>Upgrades</h2>`;
+    U.forEach((u,j)=>{ if (S.ups.includes(j)) return; if (uLocked(j)) return h += `<div class="row lock"><span class="ic">${ic("lock",26)}</span><span class="t">Locked<small>Reach ${fmt(u.v)} ${u.k==="tot"?"chocolate baked":"clicks"}</small></span></div>`;
+      h += `<button class="row" data-u="${j}" ${S.c<u.c?"disabled":""}><span class="ic">${ic("star",26)}</span><span class="t">${u.n}<small>${u.d}</small></span><b>${fmt(u.c)}</b></button>`; });
+    if (S.ups.length === U.length) h += `<p>All upgrades bought.</p>`;
+    h += `<h2>Rebirth</h2><div class="row"><span class="t">Cocoa Crowns: ${S.chips} (+${S.chips*10}% production)<small>Rebirth now for +${pts()} crowns. Resets chocolate, buildings and upgrades.</small></span><button class="act warn" data-a="rebirth" ${pts()<1?"disabled":""}>Rebirth</button></div>`;
+  } else if (tab === "ach"){
+    h += `<h2>Achievements (${S.ach.length}/${A.length})</h2><p style="color:var(--dim);margin:0 4px 8px">Each one gives +2% production.</p>`;
+    A.forEach((a,j)=>{ const d = S.ach.includes(j); h += `<div class="row ${d?"done":"lock"}"><span class="ic">${ic(d?"trophy":"lock",26)}</span><span class="t">${d?a.n:"???"}<small>${a.d}</small></span></div>`; });
+  } else if (tab === "stats"){
+    h += `<h2>Statistics</h2><div id="st"></div>`;
+  } else {
+    h += `<h2>Settings</h2>
+    <button class="row" data-a="sound"><span class="t">Sound</span><b>${S.sound?"On":"Off"}</b></button>
+    <button class="row" data-a="anim"><span class="t">Animations</span><b>${S.anim?"On":"Off"}</b></button>
+    <h2>Save data</h2><textarea id="sv" aria-label="Save code" placeholder="Save code appears here, or paste one to import"></textarea>
+    <div class="seg"><button data-a="export">Export</button><button data-a="import">Import</button></div>
+    <button class="act warn" data-a="reset">Reset game</button><p id="smsg" class="msg"></p>`;
+  }
+  p.innerHTML = h;
+}
+function statsUpdate(){ const e = $("#st"); if (!e) return;
+  e.innerHTML = [["Chocolate",fmt(S.c)],["Per second",fmt(cps())],["Per click",fmt(clickPow())],["Baked this run",fmt(S.run)],["Baked all time",fmt(S.tot)],["Clicks",S.clicks.toLocaleString()],
+   ["Buildings",owned()],["Upgrades",S.ups.length+"/"+U.length],["Achievements",S.ach.length+"/"+A.length],["Cocoa Crowns",S.chips],["Total multiplier","x"+gmult().toFixed(2)]]
+   .map(([k,v])=>`<div class="row"><span class="t">${k}</span><b>${v}</b></div>`).join(""); }
+
+$("#panel").onclick = e => { const t = e.target.closest("button"); if (!t) return; const d = t.dataset;
+  if (d.q) { qty = d.q === "max" ? "max" : +d.q; sig = ""; }
+  else if (d.b !== undefined) buy(+d.b);
+  else if (d.u !== undefined) buyUp(+d.u);
+  else if (d.a === "rebirth") rebirth();
+  else if (d.a === "sound"){ S.sound = !S.sound; sig = ""; }
+  else if (d.a === "anim"){ S.anim = !S.anim; applyAnim(); sig = ""; }
+  else if (d.a === "export"){ $("#sv").value = btoa(JSON.stringify(S)); $("#sv").select(); $("#smsg").textContent = "Copy this code to keep your save."; $("#smsg").className = "msg ok"; }
+  else if (d.a === "import"){ try{ const v = validate(JSON.parse(atob($("#sv").value.trim())));
+      if (!v) throw 0; S = v; applyAnim(); sig = ""; save(); toast("Save imported."); }catch(err){ $("#smsg").textContent = "That save code is not valid, nothing was changed."; $("#smsg").className = "msg bad"; } }
+  else if (d.a === "reset"){ if (confirm("Delete all progress? This cannot be undone.")){ S = def(); frenzy = 0; sig = ""; save(); toast("Game reset."); } }
+  hud(); };
+
+function hud(){ $("#strip").innerHTML = B.map((b,i)=>S.own[i]?`<span title="${b.n}">${ic(BI[i],18)}${S.own[i]}</span>`:"").join(""); $("#bal").textContent = fmt(S.c)+" chocolate"; $("#cps").textContent = fmt(cps())+" per second"+(fr()>1?" (frenzy x7)":"");
+  $("#mTot").textContent = "Total baked: "+fmt(S.tot); $("#mClk").textContent = "Clicks: "+S.clicks.toLocaleString(); $("#mMul").textContent = "Multiplier: x"+gmult().toFixed(2); }
+
+// ---------- game loop ----------
+let lastT = performance.now();
+setInterval(()=>{
+  const n = performance.now(), dt = Math.min((n-lastT)/1000, 1); lastT = n; add(cps()*dt);
+  A.forEach((a,j)=>{ if (!S.ach.includes(j) && a.t()){ S.ach.push(j); toast("Achievement: "+a.n+" (+2% production)"); sig = ""; } });
+  if (S.golden && Date.now() > nextGold){ spawnGold(); nextGold = Date.now()+60000+Math.random()*60000; }
+  if (adminUntil && Date.now() > adminUntil){ adminUntil = 0; if ($("#modal").style.display === "flex") admin("Admin session expired. Please log in again.", true); }
+  hud(); render(); statsUpdate();
+}, 100);
+setInterval(save, 10000); addEventListener("beforeunload", save);
+
+// ---------- admin (local demo) ----------
+async function sha(s){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+const parseAmt = v => { const m = {k:1e3,m:1e6,b:1e9,t:1e12}, s = String(v).trim().toLowerCase(), x = m[s.slice(-1)] ? parseFloat(s)*m[s.slice(-1)] : Number(s); return isFinite(x) ? x : NaN; };
+function admin(msg, bad){
+  const m = $("#modal"), box = $("#box"); m.style.display = "flex";
+  if (!adminUntil){
+    box.innerHTML = `<h2>Admin login</h2><p class="demo">Local demo only. This site is static, so the password check runs in your browser and can be bypassed by anyone who inspects the page. It is not secure.</p>
+      <form id="lf"><label for="pw">Password</label><input id="pw" type="password" autocomplete="off"><p class="msg ${bad?"bad":""}" id="am">${msg||""}</p>
+      <div class="seg"><button class="act" type="submit">Log in</button><button type="button" id="cl">Close</button></div></form>`;
+    $("#pw").focus(); $("#cl").onclick = () => m.style.display = "none";
+    $("#lf").onsubmit = async e => { e.preventDefault(); const am = $("#am");
+      if (Date.now() < lockUntil){ am.className = "msg bad"; return am.textContent = "Too many attempts. Wait "+Math.ceil((lockUntil-Date.now())/1000)+"s."; }
+      if (!crypto.subtle){ am.className = "msg bad"; return am.textContent = "Login needs HTTPS (GitHub Pages is fine)."; }
+      if (await sha($("#pw").value) === ADMIN_HASH){ fails = 0; adminUntil = Date.now()+10*60000; admin("Logged in. Session lasts 10 minutes."); }
+      else { if (++fails >= 5){ lockUntil = Date.now()+30000; fails = 0; } am.className = "msg bad"; am.textContent = "Wrong password."; } };
+    return;
+  }
+  box.innerHTML = `<h2>Admin dashboard</h2><p class="demo">Local demo, not secure.</p>
+    <label for="amt">Amount (accepts 5k, 2m, 3b, 1t)</label><input id="amt" inputmode="decimal" placeholder="e.g. 1m">
+    <div class="seg" style="margin-top:8px;flex-wrap:wrap">
+      <button data-x="setBal">Set balance</button><button data-x="add">Add</button><button data-x="rem">Remove</button>
+      <button data-x="setCps">Set CPS</button><button data-x="clrCps">Clear CPS override</button>
+      <button data-x="mul">Multiply production</button><button data-x="gm">Set global multiplier</button></div>
+    <label for="ag">Grant achievement</label><div class="grid"><select id="ag">${A.map((a,j)=>`<option value="${j}">${a.n}</option>`).join("")}</select><button class="act" data-x="grant">Grant</button></div>
+    <div class="seg" style="flex-wrap:wrap"><button data-x="unlock">Reveal all buildings and upgrades</button><button data-x="gold">Golden events: ${S.golden?"On":"Off"}</button></div>
+    <div class="row"><span class="t">Balance ${fmt(S.c)}, ${fmt(cps())}/s, multiplier x${gmult().toFixed(2)}<small>Baked ${fmt(S.tot)}, clicks ${S.clicks}, buildings ${owned()}</small></span></div>
+    <p class="msg ${bad?"bad":"ok"}" id="am">${msg||""}</p>
+    <div class="seg"><button class="act warn" data-x="reset">Reset progress</button><button data-x="out">Log out</button><button data-x="close">Close</button></div>`;
+}
+$("#admBtn").onclick = () => admin();
+$("#modal").onclick = e => { if (e.target.id === "modal") $("#modal").style.display = "none";
+  const x = e.target.dataset.x; if (!x) return;
+  if (!adminUntil || Date.now() > adminUntil){ adminUntil = 0; return admin("Session expired. Log in again.", true); }
+  const v = parseAmt($("#amt").value), fail = t => admin(t, true), ok = t => { sig = ""; save(); admin(t); };
+  const needNum = () => isNaN(v) || v < 0 || v > 1e100;
+  if (x === "close") return $("#modal").style.display = "none";
+  if (x === "out"){ adminUntil = 0; return admin("Logged out."); }
+  if (["setBal","add","rem","setCps","mul","gm"].includes(x) && needNum()) return fail("Enter a valid number between 0 and 1e100.");
+  if (x === "setBal"){ S.c = v; return ok("Balance set to "+fmt(v)+"."); }
+  if (x === "add"){ add(v); return ok("Added "+fmt(v)+"."); }
+  if (x === "rem"){ S.c = Math.max(0, S.c - v); return ok("Removed up to "+fmt(v)+"."); }
+  if (x === "setCps"){ S.cpsOv = v; return ok("Base CPS fixed at "+fmt(v)+" (buildings ignored until cleared)."); }
+  if (x === "clrCps"){ S.cpsOv = null; return ok("CPS override cleared."); }
+  if (x === "mul"){ if (v <= 0 || S.gm*v > 1e6) return fail("Multiplier must be above 0 and keep the total under 1,000,000."); S.gm *= v; return ok("Production multiplied by "+v+"."); }
+  if (x === "gm"){ if (v <= 0 || v > 1e6) return fail("Global multiplier must be between 0 and 1,000,000."); S.gm = v; return ok("Global multiplier set to x"+v+"."); }
+  if (x === "grant"){ const j = +$("#ag").value; if (!S.ach.includes(j)) S.ach.push(j); return ok("Achievement granted."); }
+  if (x === "unlock"){ S.unlockAll = true; return ok("Everything is visible. You still pay to buy items."); }
+  if (x === "gold"){ S.golden = !S.golden; return ok("Golden events "+(S.golden?"enabled":"disabled")+"."); }
+  if (x === "reset"){ if (!confirm("Reset ALL progress? This cannot be undone.")) return; const g = S.golden; S = def(); S.golden = g; frenzy = 0; return ok("Progress reset."); } };
+addEventListener("keydown", e => { if (e.key === "Escape") $("#modal").style.display = "none"; });
+
+load(); render(); hud();
+</script>
+</body>
+</html>
